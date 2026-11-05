@@ -53,15 +53,15 @@ def build_pyd():
     dist.parse_command_line()
     dist.run_commands()
 
+    build_ext = dist.get_command_obj("build_ext")
     for name in SCRIPTS:
         stem = Path(name).stem
-        src_dir = OUTPUT_DIR / "src"
-        for pyd in src_dir.glob(f"{stem}*.pyd"):
-            dest = SRC_DIR / f"{stem}.pyd"
-            shutil.copy2(pyd, dest)
-        for so in src_dir.glob(f"{stem}*.so"):
-            dest = SRC_DIR / f"{stem}.so"
-            shutil.copy2(so, dest)
+        # Ask the configured compiler for this module's exact ABI-specific
+        # output. Prefix globs may also match unrelated modules or stale builds
+        # for another interpreter and silently publish the wrong binary.
+        extension = Path(build_ext.get_ext_fullpath(f"src.{stem}"))
+        dest = SRC_DIR / f"{stem}{extension.suffix}"
+        shutil.copy2(extension, dest)
 
     for name in SCRIPTS:
         py_file = SRC_DIR / name
