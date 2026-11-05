@@ -48,3 +48,24 @@ python build_release.py --restore  # restore source for development
 ## License
 
 See [LICENSE](LICENSE)
+
+### Release restore checks
+
+`python build_release.py --restore` removes both the bare `.pyd`/`.so` files
+written by the release builder and ABI-tagged extensions before restoring
+`.py.bak` backups. Existing `.py` files are not overwritten. Run restore before
+editing the backend so a compiled extension does not shadow the source.
+
+The release-tool tests need only Cython and setuptools, not the application or
+model dependencies:
+
+```sh
+python -m pip install Cython setuptools
+python -B -m unittest discover -s tests -v
+```
+
+All fixtures are temporary synthetic Python modules. On POSIX the suite also
+builds and restores real native extensions, requiring a working C compiler.
+Set `CC` and `LDSHARED` if Python's default compiler is unavailable (for example,
+`CC=gcc LDSHARED="gcc -shared"` on Linux). Windows artifact removal is covered
+with synthetic `.pyd` files; a native Windows release build is a separate check.

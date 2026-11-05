@@ -78,10 +78,12 @@ def restore_source():
     for name in SCRIPTS:
         bak = SRC_DIR / (name + ".bak")
         py_file = SRC_DIR / name
-        for p in SRC_DIR.glob(f"{Path(name).stem}.*.pyd"):
-            p.unlink(missing_ok=True)
-        for p in SRC_DIR.glob(f"{Path(name).stem}.*.so"):
-            p.unlink(missing_ok=True)
+        stem = Path(name).stem
+        for suffix in (".pyd", ".so"):
+            # build_pyd normalizes ABI-tagged build outputs to bare names.
+            (SRC_DIR / f"{stem}{suffix}").unlink(missing_ok=True)
+            for p in SRC_DIR.glob(f"{stem}.*{suffix}"):
+                p.unlink(missing_ok=True)
         if bak.exists() and not py_file.exists():
             bak.rename(py_file)
     print("Restored source files.")
