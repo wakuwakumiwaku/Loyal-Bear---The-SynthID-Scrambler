@@ -56,11 +56,12 @@ written by the release builder and ABI-tagged extensions before restoring
 `.py.bak` backups. Existing `.py` files are not overwritten. Run restore before
 editing the backend so a compiled extension does not shadow the source.
 
-The release-tool tests need only Cython and setuptools, not the application or
-model dependencies:
+The offline tests need only Cython, setuptools and Pillow, not the application
+or model dependencies. Metadata tests use tiny synthetic images and check that
+palette colors and transparency survive stripping while EXIF/text is removed:
 
 ```sh
-python -m pip install Cython setuptools
+python -m pip install Cython setuptools Pillow
 python -B -m unittest discover -s tests -v
 ```
 
