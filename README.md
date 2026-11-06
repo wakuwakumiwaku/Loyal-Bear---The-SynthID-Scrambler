@@ -56,16 +56,18 @@ written by the release builder and ABI-tagged extensions before restoring
 `.py.bak` backups. Existing `.py` files are not overwritten. Run restore before
 editing the backend so a compiled extension does not shadow the source.
 
-The offline tests need only Cython, setuptools and Pillow, not the application
-or model dependencies. Metadata tests use tiny synthetic images and check that
-palette colors and transparency survive stripping while EXIF/text is removed:
+The offline tests need Cython, setuptools, Pillow and Gradio, but no model or
+inference dependencies. Image-save callback tests replace only the model boundary
+with tiny synthetic images; they check that outputs cannot overwrite each other.
+Metadata tests check that palette colors and transparency survive stripping while
+EXIF/text is removed:
 
 ```sh
-python -m pip install Cython setuptools Pillow
+python -m pip install Cython setuptools "Pillow>=10.4" "gradio>=4.44"
 python -B -m unittest discover -s tests -v
 ```
 
-All fixtures are temporary synthetic Python modules. On POSIX the suite also
+All files are temporary synthetic fixtures. No server or model is started. On POSIX the suite also
 builds and restores real native extensions, requiring a working C compiler.
 Set `CC` and `LDSHARED` if Python's default compiler is unavailable (for example,
 `CC=gcc LDSHARED="gcc -shared"` on Linux). Windows artifact removal is covered

@@ -1,5 +1,5 @@
 import os
-import time
+import tempfile
 import gradio as gr
 
 from src.pipeline import load_pipeline, run_img2img
@@ -38,12 +38,18 @@ def on_generate(image, prompt, denoise_mode):
     result = strip_metadata(result)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    ts = int(time.time())
-    out_path = os.path.join(OUTPUT_DIR, f"output_{ts}.png")
-    result.save(out_path)
+    # Reserve a unique filename atomically; multiple results may finish in the
+    # same second, and an existing successful output must never be overwritten.
+    fd, out_path = tempfile.mkstemp(prefix="output_", suffix=".png", dir=OUTPUT_DIR)
+    os.close(fd)
+    try:
+        result.save(out_path)
+    except BaseException:
+        os.unlink(out_path)
+        raise
     print(f"Saved: {out_path}")
 
-    return result, f"Saved to outputs/output_{ts}.png"
+    return result, f"Saved to outputs/{os.path.basename(out_path)}"
 
 
 THEME = gr.themes.Base(
